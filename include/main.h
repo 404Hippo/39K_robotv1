@@ -43,8 +43,6 @@
 
 #include "lemlib/api.hpp"
 
-#include "autons.hpp"
-#include "subsystems.hpp"
 #include "globals.hpp"
 #include "helpers.hpp"
 

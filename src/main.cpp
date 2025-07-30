@@ -1,13 +1,13 @@
 #include "main.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
 
-pros::MotorGroup left_motors({1, 2, 3}, pros::MotorGearset::blue); // left motors on ports 1, 2, 3 with blue motors
-pros::MotorGroup right_motors({-4, -5, -6}, pros::MotorGearset::blue); // right motors on ports 4, 5, 6 with blue motors
+pros::MotorGroup left_motors({-14, -15, -16}, pros::MotorGearset::blue); // left motors on ports 1, 2, 3 with blue motors
+pros::MotorGroup right_motors({11, 12, 13}, pros::MotorGearset::blue); // right motors on ports 4, 5, 6 with blue motors
 
 // drivetrain settings
-lemlib::Drivetrain drivetrain(&left_motor_group, // left motor group
-							  &right_motor_group, // right motor group
-							  10,               // 10 inch track width
+lemlib::Drivetrain drivetrain(&left_motors, // left motor group
+							  &right_motors, // right motor group
+							  11.5,               // 10 inch track width
 							  lemlib::Omniwheel::NEW_275, // using new 2.75" omnis
 							  450,              // drivetrain rpm is 450
 							  2					// horizontal drit is 2 (for now)
@@ -16,12 +16,14 @@ lemlib::Drivetrain drivetrain(&left_motor_group, // left motor group
 // create an imu on port 10
 pros::Imu imu(10); 
 
+pros::Rotation vertical_sensor(1);
+
 lemlib::TrackingWheel vertical_tracking_wheel(&vertical_sensor, lemlib::Omniwheel::NEW_275, -2.5);
 // replace -2.5 with the inch offset of tracking wheel from tracking center
 
 lemlib::OdomSensors sensors(
 	&vertical_tracking_wheel, //vertical tracking wheel 1, set to null
-	nullptr
+	nullptr,
 	&imu //inertial
 );
 
@@ -32,10 +34,10 @@ lemlib::ControllerSettings lateral_controller(
 	3, // derivative gain (kD)
 	3, // anti windup
 	1, // small eror range, in inches
-	100/ // small error range timeout, in milliseconds
+	100, // small error range timeout, in milliseconds
 	3, // large error range, in inches
 	500, // large error range timeout, in milliseconds
-	20tribesigns // maximum acceleration (slew)
+	20, // maximum acceleration (slew)
 );
 
 // angular PID controller
@@ -49,16 +51,16 @@ lemlib::ControllerSettings angular_controller(
 	3, // large error range, in degrees
 	500, // large error range timeout, in milliseconds
 	0 // maximum acceleration (slew)
-)
+);
 
 // create the chassis
-lemlib:Chassis chassis(
+lemlib::Chassis chassis(
 	drivetrain, // drivetrain settings
 	lateral_controller, // lateral PID settings
 	angular_controller, // angular PID settings
-	sensors // odometry sensors
+	sensors, // odometry sensors
 	&throttle_curve, // input curves for throttle input
-	&steer_curve // input curves for steer input
+	&steer_curve, // input curves for steer input
 );
 
 // input curve for throttle input during driver control
@@ -79,7 +81,7 @@ lemlib::ExpoDriveCurve steer_curve(
 
 void initialize() {
 	pros::lcd::initialize(); // initialize brain screen
-	chassis.calaibrate(); // calibrate sensors
+	chassis.calibrate(); // calibrate sensors
 	// print position to brain screen
 	pros::Task screen_task([&]() {
 		while (true) {
@@ -108,7 +110,7 @@ void competition_initialize() {
 
 void autonomous() {
 	// set position to x:0, y:0, heading:0
-	chassis.setPose(0, 0, 0,);
+	chassis.setPose(0, 0, 0);
 
 	// turn to face heading 90 with a very long timeout
 	chassis.turnToHeading(90, 10000);
